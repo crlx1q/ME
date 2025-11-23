@@ -1,0 +1,768 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Layout, CheckSquare, Notebook, FolderKanban, 
+  Settings, LogOut, Plus, Trash2, Save, 
+  Moon, Sun, Smartphone, ShieldCheck, Image as ImageIcon,
+  ChevronRight, Menu, X, Calendar, Clipboard
+} from 'lucide-react';
+
+// --- MOCK DATABASE & AUTH UTILS ---
+
+// Имитация начальных данных
+const INITIAL_DATA = {
+  tasks: [
+    { id: 1, text: "Запустить MVP Tasco", completed: false, deadline: "2025-12-31" },
+    { id: 2, text: "Протестировать мобильную версию", completed: true, deadline: "2023-10-10" }
+  ],
+  notes: [
+    { id: 1, title: "Идея для фичи", content: "Сделать голосовой ввод задач..." }
+  ],
+  projects: [
+    { 
+      id: 1, 
+      title: "Разработка Tasco", 
+      lines: [
+        { id: 101, text: "Настроить MongoDB Atlas", type: "text", done: false },
+        { id: 102, text: "Сверстать Login Page", type: "text", done: true }
+      ] 
+    }
+  ],
+  userSettings: {
+    theme: 'amoled', // amoled, dark, light
+    accentColor: 'violet' // violet, blue, emerald, rose
+  }
+};
+
+// Темы оформления
+const THEMES = {
+  amoled: { bg: 'bg-black', card: 'bg-zinc-900', text: 'text-gray-100', border: 'border-zinc-800' },
+  dark: { bg: 'bg-gray-900', card: 'bg-gray-800', text: 'text-gray-100', border: 'border-gray-700' },
+  light: { bg: 'bg-gray-50', card: 'bg-white', text: 'text-gray-900', border: 'border-gray-200' },
+};
+
+const ACCENTS = {
+  violet: 'text-violet-500 bg-violet-500 border-violet-500',
+  blue: 'text-blue-500 bg-blue-500 border-blue-500',
+  emerald: 'text-emerald-500 bg-emerald-500 border-emerald-500',
+  rose: 'text-rose-500 bg-rose-500 border-rose-500',
+  orange: 'text-orange-500 bg-orange-500 border-orange-500',
+};
+
+// --- COMPONENTS ---
+
+const AuthScreen = ({ onLogin }) => {
+  const [step, setStep] = useState(1); // 1: Login, 2: 2FA
+  const [login, setLogin] = useState('');
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (login === 'AlisherDEV' && password === '123456') {
+      setStep(2);
+      setError('');
+    } else {
+      setError('Неверный логин или пароль');
+    }
+  };
+
+  const handle2FA = (e) => {
+    e.preventDefault();
+    // Имитация проверки 2FA
+    if (code.length === 6) {
+      onLogin(rememberMe);
+    } else {
+      setError('Неверный код 2FA (введите любые 6 цифр)');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4 font-sans selection:bg-violet-500 selection:text-white">
+      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl shadow-violet-900/20 relative overflow-hidden">
+        
+        {/* Декоративный фон */}
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-violet-600 to-fuchsia-600"></div>
+        
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold tracking-tighter mb-2 flex items-center justify-center gap-2">
+            <CheckSquare className="w-8 h-8 text-violet-500" />
+            Tasco
+          </h1>
+          <p className="text-zinc-500 text-sm">Личное пространство AlisherDEV</p>
+        </div>
+
+        {step === 1 ? (
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-zinc-400 text-sm mb-1">Логин</label>
+              <input 
+                type="text" 
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
+                className="w-full bg-black border border-zinc-700 rounded-lg p-3 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all"
+                placeholder="Username"
+              />
+            </div>
+            <div>
+              <label className="block text-zinc-400 text-sm mb-1">Пароль</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-black border border-zinc-700 rounded-lg p-3 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all"
+                placeholder="••••••"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-zinc-700 bg-black checked:bg-violet-500"
+              />
+              <label htmlFor="remember" className="text-sm text-zinc-400 cursor-pointer select-none">
+                Не выходить из системы
+              </label>
+            </div>
+
+            {error && <p className="text-rose-500 text-sm animate-pulse">{error}</p>}
+
+            <button type="submit" className="w-full bg-white text-black font-bold py-3 rounded-lg hover:bg-gray-200 transition-colors">
+              Войти
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handle2FA} className="space-y-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShieldCheck className="w-8 h-8 text-violet-500" />
+              </div>
+              <h3 className="text-xl font-medium">Двухфакторная аутентификация</h3>
+              <p className="text-zinc-500 text-sm mt-2">Введите код из Google Authenticator</p>
+            </div>
+
+            <input 
+              type="text" 
+              maxLength="6"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              className="w-full bg-black border border-zinc-700 rounded-lg p-4 text-center text-2xl tracking-[1em] focus:border-violet-500 outline-none font-mono"
+              placeholder="000000"
+              autoFocus
+            />
+
+            {error && <p className="text-rose-500 text-sm text-center">{error}</p>}
+
+            <div className="flex gap-3">
+              <button 
+                type="button" 
+                onClick={() => setStep(1)}
+                className="flex-1 bg-zinc-800 text-zinc-300 font-medium py-3 rounded-lg hover:bg-zinc-700 transition-colors"
+              >
+                Назад
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 bg-violet-600 text-white font-bold py-3 rounded-lg hover:bg-violet-500 transition-colors"
+              >
+                Подтвердить
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const SidebarItem = ({ icon: Icon, label, active, onClick, collapsed }) => (
+  <button 
+    onClick={onClick}
+    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+      active 
+        ? 'bg-white/10 text-white shadow-sm' 
+        : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+    }`}
+  >
+    <Icon className="w-5 h-5 shrink-0" />
+    {!collapsed && <span className="font-medium truncate">{label}</span>}
+  </button>
+);
+
+const ProjectView = ({ project, onUpdate, onBack, themeStyles, accentClass }) => {
+  const [newLine, setNewLine] = useState('');
+  const pasteAreaRef = useRef(null);
+
+  const addLine = (e) => {
+    e.preventDefault();
+    if (!newLine.trim()) return;
+    const newItem = { id: Date.now(), text: newLine, type: 'text', done: false };
+    const updatedProject = { ...project, lines: [...project.lines, newItem] };
+    onUpdate(updatedProject);
+    setNewLine('');
+  };
+
+  const toggleLine = (lineId) => {
+    const updatedLines = project.lines.map(line => 
+      line.id === lineId ? { ...line, done: !line.done } : line
+    );
+    onUpdate({ ...project, lines: updatedLines });
+  };
+
+  const handlePaste = async (e) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const blob = items[i].getAsFile();
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const newItem = { 
+            id: Date.now(), 
+            text: "Изображение из буфера", 
+            type: 'image', 
+            content: event.target.result, // Base64
+            done: false 
+          };
+          onUpdate({ ...project, lines: [...project.lines, newItem] });
+        };
+        reader.readAsDataURL(blob);
+      }
+    }
+  };
+
+  const deleteLine = (lineId) => {
+    const updatedLines = project.lines.filter(l => l.id !== lineId);
+    onUpdate({ ...project, lines: updatedLines });
+  };
+
+  return (
+    <div className="h-full flex flex-col animate-fadeIn">
+      <div className="flex items-center gap-2 mb-6">
+        <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10">
+          <ChevronRight className="w-5 h-5 rotate-180" />
+        </button>
+        <h2 className="text-2xl font-bold">{project.title}</h2>
+      </div>
+
+      {/* Input Area */}
+      <div className={`p-4 rounded-xl mb-6 border ${themeStyles.border} ${themeStyles.card}`}>
+        <form onSubmit={addLine} className="flex gap-3">
+          <input
+            ref={pasteAreaRef}
+            type="text"
+            value={newLine}
+            onPaste={handlePaste}
+            onChange={(e) => setNewLine(e.target.value)}
+            placeholder="Новая строка, идея или Ctrl+V для картинки..."
+            className={`flex-1 bg-transparent outline-none ${themeStyles.text} placeholder-zinc-600`}
+          />
+          <button type="submit" className={`${accentClass.replace('text-', 'bg-').split(' ')[1]} text-white p-2 rounded-lg`}>
+            <Plus className="w-5 h-5" />
+          </button>
+        </form>
+        <div className="mt-2 text-xs text-zinc-500 flex items-center gap-1">
+          <ImageIcon className="w-3 h-3" />
+          Поддерживается вставка изображений из буфера обмена
+        </div>
+      </div>
+
+      {/* Lines List */}
+      <div className="flex-1 overflow-y-auto space-y-3 pb-20">
+        {project.lines.length === 0 && (
+          <div className="text-center text-zinc-600 mt-10">Проект пуст. Добавьте идеи или баги.</div>
+        )}
+        {project.lines.map(line => (
+          <div key={line.id} className={`group flex flex-col p-3 rounded-lg border ${themeStyles.border} hover:border-zinc-600 transition-colors ${themeStyles.card}`}>
+            <div className="flex items-start gap-3">
+              <div 
+                onClick={() => toggleLine(line.id)}
+                className={`mt-1 w-5 h-5 rounded border cursor-pointer flex items-center justify-center transition-colors ${
+                  line.done 
+                    ? accentClass.replace('text-', 'bg-').split(' ')[1] + ' border-transparent' 
+                    : 'border-zinc-600 hover:border-zinc-400'
+                }`}
+              >
+                {line.done && <CheckSquare className="w-3 h-3 text-white" />}
+              </div>
+              
+              <div className="flex-1 overflow-hidden">
+                {line.type === 'image' ? (
+                  <div className="mb-2">
+                    <img src={line.content} alt="Pasted" className="max-w-full rounded-lg max-h-60 object-contain border border-zinc-800" />
+                    <p className={`text-sm ${line.done ? 'line-through text-zinc-600' : ''}`}>{line.text}</p>
+                  </div>
+                ) : (
+                  <p className={`break-words ${line.done ? 'line-through text-zinc-600' : ''}`}>{line.text}</p>
+                )}
+              </div>
+
+              <button 
+                onClick={() => deleteLine(line.id)}
+                className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-rose-500 transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN APP COMPONENT ---
+
+export default function Tasco() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [activeTab, setActiveTab] = useState('tasks'); // tasks, notes, projects, settings
+  const [data, setData] = useState(INITIAL_DATA);
+  const [activeProject, setActiveProject] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // States for forms
+  const [newTaskText, setNewTaskText] = useState('');
+  const [newTaskDate, setNewTaskDate] = useState('');
+  const [newProjectName, setNewProjectName] = useState('');
+
+  // Load from LocalStorage on init
+  useEffect(() => {
+    const savedAuth = localStorage.getItem('tasco_auth');
+    if (savedAuth === 'true') {
+      setIsAuthenticated(true);
+    }
+    
+    const savedData = localStorage.getItem('tasco_data');
+    if (savedData) {
+      setData(JSON.parse(savedData));
+    }
+  }, []);
+
+  // Save to LocalStorage on change
+  useEffect(() => {
+    if (isAuthenticated) {
+      localStorage.setItem('tasco_data', JSON.stringify(data));
+    }
+  }, [data, isAuthenticated]);
+
+  const handleLogin = (remember) => {
+    setIsAuthenticated(true);
+    if (remember) {
+      localStorage.setItem('tasco_auth', 'true');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('tasco_auth');
+    setActiveProject(null);
+  };
+
+  // Theme Helpers
+  const currentTheme = THEMES[data.userSettings.theme];
+  const accentClass = ACCENTS[data.userSettings.accentColor];
+
+  // CRUD Operations
+  const addTask = (e) => {
+    e.preventDefault();
+    if (!newTaskText.trim()) return;
+    const newTask = {
+      id: Date.now(),
+      text: newTaskText,
+      deadline: newTaskDate,
+      completed: false
+    };
+    setData(prev => ({ ...prev, tasks: [newTask, ...prev.tasks] }));
+    setNewTaskText('');
+    setNewTaskDate('');
+  };
+
+  const toggleTask = (id) => {
+    setData(prev => ({
+      ...prev,
+      tasks: prev.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t)
+    }));
+  };
+
+  const deleteTask = (id) => {
+    setData(prev => ({ ...prev, tasks: prev.tasks.filter(t => t.id !== id) }));
+  };
+
+  const addProject = (e) => {
+    e.preventDefault();
+    if (!newProjectName.trim()) return;
+    const newProj = { id: Date.now(), title: newProjectName, lines: [] };
+    setData(prev => ({ ...prev, projects: [...prev.projects, newProj] }));
+    setNewProjectName('');
+  };
+
+  const updateProject = (updatedProject) => {
+    setData(prev => ({
+      ...prev,
+      projects: prev.projects.map(p => p.id === updatedProject.id ? updatedProject : p)
+    }));
+    setActiveProject(updatedProject);
+  };
+
+  const deleteProject = (id) => {
+    if(confirm('Удалить проект?')) {
+        setData(prev => ({ ...prev, projects: prev.projects.filter(p => p.id !== id) }));
+        setActiveProject(null);
+    }
+  }
+
+  const changeTheme = (themeName) => {
+    setData(prev => ({ ...prev, userSettings: { ...prev.userSettings, theme: themeName } }));
+  };
+
+  const changeAccent = (colorName) => {
+    setData(prev => ({ ...prev, userSettings: { ...prev.userSettings, accentColor: colorName } }));
+  };
+
+  if (!isAuthenticated) {
+    return <AuthScreen onLogin={handleLogin} />;
+  }
+
+  return (
+    <div className={`h-screen flex flex-col md:flex-row overflow-hidden transition-colors duration-300 ${currentTheme.bg} ${currentTheme.text} font-sans`}>
+      
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-zinc-800 bg-opacity-90 backdrop-blur-md z-20">
+        <div className="flex items-center gap-2 font-bold text-lg">
+          <CheckSquare className={`w-6 h-6 ${accentClass.split(' ')[0]}`} />
+          Tasco
+        </div>
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+           {isMobileMenuOpen ? <X /> : <Menu />}
+        </button>
+      </div>
+
+      {/* Sidebar */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-10 w-64 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 border-r ${currentTheme.border} ${currentTheme.bg}
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="p-6 flex flex-col h-full">
+          <div className="hidden md:flex items-center gap-2 font-bold text-2xl mb-10 tracking-tight">
+            <CheckSquare className={`w-8 h-8 ${accentClass.split(' ')[0]}`} />
+            Tasco
+          </div>
+
+          <nav className="space-y-2 flex-1">
+            <SidebarItem 
+              icon={CheckSquare} 
+              label="Задачи" 
+              active={activeTab === 'tasks'} 
+              onClick={() => { setActiveTab('tasks'); setIsMobileMenuOpen(false); setActiveProject(null); }} 
+            />
+            <SidebarItem 
+              icon={FolderKanban} 
+              label="Проекты" 
+              active={activeTab === 'projects'} 
+              onClick={() => { setActiveTab('projects'); setIsMobileMenuOpen(false); setActiveProject(null); }} 
+            />
+            <SidebarItem 
+              icon={Notebook} 
+              label="Заметки" 
+              active={activeTab === 'notes'} 
+              onClick={() => { setActiveTab('notes'); setIsMobileMenuOpen(false); setActiveProject(null); }} 
+            />
+            <div className="pt-4 pb-2">
+              <div className="h-px bg-zinc-800 mb-4"></div>
+              <p className="px-3 text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Настройки</p>
+            </div>
+            <SidebarItem 
+              icon={Settings} 
+              label="Тема и Аккаунт" 
+              active={activeTab === 'settings'} 
+              onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); setActiveProject(null); }} 
+            />
+          </nav>
+
+          <div className="mt-auto pt-6 border-t border-zinc-800">
+            <div className="flex items-center gap-3 px-3 mb-4">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${accentClass.replace('text-', 'bg-').split(' ')[1]}`}>
+                A
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate">AlisherDEV</p>
+                <p className="text-xs text-zinc-500">Pro Plan</p>
+              </div>
+            </div>
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors">
+              <LogOut className="w-5 h-5" />
+              <span>Выйти</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 h-full overflow-hidden relative flex flex-col">
+        {/* Overlay for mobile sidebar */}
+        {isMobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-0 md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          ></div>
+        )}
+
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+          <div className="max-w-5xl mx-auto h-full">
+            
+            {/* --- TASKS VIEW --- */}
+            {activeTab === 'tasks' && (
+              <div className="animate-fadeIn h-full flex flex-col">
+                <h2 className="text-3xl font-bold mb-6">Мои задачи</h2>
+                
+                <form onSubmit={addTask} className={`flex flex-col md:flex-row gap-3 p-4 rounded-xl mb-8 border ${currentTheme.border} ${currentTheme.card}`}>
+                  <div className="flex-1">
+                    <input 
+                      type="text" 
+                      placeholder="Что нужно сделать?" 
+                      value={newTaskText}
+                      onChange={(e) => setNewTaskText(e.target.value)}
+                      className={`w-full bg-transparent outline-none ${currentTheme.text}`}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="relative">
+                        <input 
+                        type="date" 
+                        value={newTaskDate}
+                        onChange={(e) => setNewTaskDate(e.target.value)}
+                        className={`bg-transparent outline-none text-sm border border-zinc-700 rounded-lg px-2 py-1 ${currentTheme.text} h-full`}
+                        />
+                    </div>
+                    <button type="submit" className={`${accentClass.replace('text-', 'bg-').split(' ')[1]} text-white px-4 py-2 rounded-lg font-medium hover:opacity-90`}>
+                        Добавить
+                    </button>
+                  </div>
+                </form>
+
+                <div className="space-y-3 flex-1 overflow-y-auto pb-20">
+                  {data.tasks.length === 0 && <p className="text-zinc-500 text-center py-10">Задач нет. Отличная работа!</p>}
+                  {data.tasks.map(task => (
+                    <div key={task.id} className={`group flex items-center gap-4 p-4 rounded-xl border transition-all ${currentTheme.card} ${currentTheme.border} ${task.completed ? 'opacity-50' : ''}`}>
+                      <button 
+                        onClick={() => toggleTask(task.id)}
+                        className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${
+                          task.completed 
+                            ? accentClass.replace('text-', 'bg-').split(' ')[1] + ' border-transparent' 
+                            : 'border-zinc-600 hover:border-zinc-400'
+                        }`}
+                      >
+                        {task.completed && <CheckSquare className="w-4 h-4 text-white" />}
+                      </button>
+                      
+                      <div className="flex-1">
+                        <p className={`font-medium ${task.completed ? 'line-through' : ''}`}>{task.text}</p>
+                        {task.deadline && (
+                          <div className={`flex items-center gap-1 text-xs mt-1 ${new Date(task.deadline) < new Date() && !task.completed ? 'text-rose-500' : 'text-zinc-500'}`}>
+                            <Calendar className="w-3 h-3" />
+                            {task.deadline}
+                          </div>
+                        )}
+                      </div>
+
+                      <button onClick={() => deleteTask(task.id)} className="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-500 transition-opacity">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* --- PROJECTS VIEW --- */}
+            {activeTab === 'projects' && (
+              activeProject ? (
+                <ProjectView 
+                  project={activeProject} 
+                  onUpdate={updateProject} 
+                  onBack={() => setActiveProject(null)}
+                  themeStyles={currentTheme}
+                  accentClass={accentClass}
+                />
+              ) : (
+                <div className="animate-fadeIn">
+                  <h2 className="text-3xl font-bold mb-6">Проекты</h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className={`p-6 rounded-2xl border border-dashed border-zinc-700 flex flex-col items-center justify-center cursor-pointer hover:border-zinc-500 transition-colors min-h-[150px]`}>
+                        <form onSubmit={addProject} className="w-full flex flex-col items-center gap-3">
+                             <input 
+                                type="text"
+                                placeholder="Имя нового проекта"
+                                value={newProjectName}
+                                onChange={(e) => setNewProjectName(e.target.value)}
+                                className="bg-transparent text-center outline-none border-b border-zinc-700 focus:border-white pb-1 w-3/4"
+                             />
+                             <button type="submit" className="flex items-center gap-2 text-zinc-500 hover:text-white">
+                                <Plus className="w-5 h-5" /> Создать
+                             </button>
+                        </form>
+                    </div>
+
+                    {data.projects.map(project => (
+                      <div 
+                        key={project.id} 
+                        onClick={() => setActiveProject(project)}
+                        className={`relative group p-6 rounded-2xl border cursor-pointer transition-all hover:scale-[1.02] ${currentTheme.card} ${currentTheme.border}`}
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                            <div className={`p-3 rounded-lg bg-black/20 ${accentClass.split(' ')[0]}`}>
+                                <FolderKanban className="w-6 h-6" />
+                            </div>
+                            <button 
+                                onClick={(e) => {e.stopPropagation(); deleteProject(project.id)}}
+                                className="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-500"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <h3 className="text-xl font-bold mb-1">{project.title}</h3>
+                        <p className="text-zinc-500 text-sm">
+                            {project.lines.length} записей • {project.lines.filter(l => l.done).length} выполнено
+                        </p>
+                        
+                        {/* Progress Bar */}
+                        <div className="mt-4 h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
+                            <div 
+                                className={`h-full ${accentClass.replace('text-', 'bg-').split(' ')[1]}`}
+                                style={{ width: `${project.lines.length > 0 ? (project.lines.filter(l => l.done).length / project.lines.length) * 100 : 0}%` }}
+                            ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
+
+            {/* --- NOTES VIEW --- */}
+            {activeTab === 'notes' && (
+                <div className="animate-fadeIn">
+                    <h2 className="text-3xl font-bold mb-6">Заметки</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                         {/* Add Note Card */}
+                         <button 
+                            onClick={() => {
+                                const newNote = { id: Date.now(), title: 'Новая заметка', content: '' };
+                                setData(prev => ({ ...prev, notes: [newNote, ...prev.notes] }));
+                            }}
+                            className="flex flex-col items-center justify-center min-h-[200px] rounded-2xl border border-dashed border-zinc-700 hover:border-zinc-500 transition-colors text-zinc-500 hover:text-white"
+                         >
+                             <Plus className="w-8 h-8 mb-2" />
+                             <span>Создать заметку</span>
+                         </button>
+
+                         {data.notes.map(note => (
+                             <div key={note.id} className={`p-5 rounded-2xl border flex flex-col ${currentTheme.card} ${currentTheme.border}`}>
+                                 <input 
+                                    type="text"
+                                    value={note.title}
+                                    onChange={(e) => {
+                                        const updatedNotes = data.notes.map(n => n.id === note.id ? {...n, title: e.target.value} : n);
+                                        setData(prev => ({...prev, notes: updatedNotes}));
+                                    }}
+                                    className="bg-transparent font-bold text-lg mb-2 outline-none w-full"
+                                    placeholder="Заголовок"
+                                 />
+                                 <textarea 
+                                    value={note.content}
+                                    onChange={(e) => {
+                                        const updatedNotes = data.notes.map(n => n.id === note.id ? {...n, content: e.target.value} : n);
+                                        setData(prev => ({...prev, notes: updatedNotes}));
+                                    }}
+                                    className="bg-transparent text-sm text-zinc-400 resize-none outline-none flex-1 min-h-[100px]"
+                                    placeholder="Пишите здесь..."
+                                 />
+                                 <div className="flex justify-end mt-2 pt-2 border-t border-white/5">
+                                    <button 
+                                        onClick={() => setData(prev => ({...prev, notes: prev.notes.filter(n => n.id !== note.id)}))}
+                                        className="text-zinc-600 hover:text-rose-500"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                 </div>
+                             </div>
+                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* --- SETTINGS VIEW --- */}
+            {activeTab === 'settings' && (
+              <div className="animate-fadeIn max-w-2xl">
+                <h2 className="text-3xl font-bold mb-8">Настройки</h2>
+                
+                <section className="mb-10">
+                  <h3 className="text-xl font-medium mb-4 flex items-center gap-2">
+                    <Moon className="w-5 h-5" />
+                    Тема оформления
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    {Object.keys(THEMES).map(themeKey => (
+                      <button 
+                        key={themeKey}
+                        onClick={() => changeTheme(themeKey)}
+                        className={`p-4 rounded-xl border capitalize transition-all ${
+                          data.userSettings.theme === themeKey 
+                            ? `border-violet-500 bg-violet-500/10 text-violet-500` 
+                            : 'border-zinc-800 text-zinc-500 hover:border-zinc-600'
+                        }`}
+                      >
+                        {themeKey}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="mb-10">
+                  <h3 className="text-xl font-medium mb-4">Цветовой акцент</h3>
+                  <div className="flex gap-4 flex-wrap">
+                    {Object.keys(ACCENTS).map(colorKey => (
+                       <button
+                          key={colorKey}
+                          onClick={() => changeAccent(colorKey)}
+                          className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${ACCENTS[colorKey].split(' ')[1]} ${
+                              data.userSettings.accentColor === colorKey ? 'border-white scale-110' : 'border-transparent opacity-70 hover:opacity-100'
+                          }`}
+                       >
+                          {data.userSettings.accentColor === colorKey && <CheckSquare className="w-5 h-5 text-white" />}
+                       </button>
+                    ))}
+                  </div>
+                </section>
+
+                <section className={`p-6 rounded-xl border ${currentTheme.border} ${currentTheme.card}`}>
+                   <h3 className="text-xl font-medium mb-2 flex items-center gap-2">
+                       <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                       Безопасность
+                   </h3>
+                   <p className="text-zinc-500 text-sm mb-4">
+                       Двухфакторная аутентификация (Google Authenticator) активна. 
+                       Пароль обновлен 3 дня назад.
+                   </p>
+                   <div className="flex gap-3">
+                       <button className="px-4 py-2 bg-zinc-800 rounded-lg text-sm font-medium hover:bg-zinc-700">
+                           Сменить пароль
+                       </button>
+                       <button className="px-4 py-2 bg-zinc-800 rounded-lg text-sm font-medium hover:bg-zinc-700">
+                           Настроить 2FA
+                       </button>
+                   </div>
+                </section>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
