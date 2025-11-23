@@ -182,7 +182,8 @@
 
     <script type="text/babel">
         const { useState, useEffect, useCallback } = React;
-        const API_URL = window.__API_URL__ || 'http://localhost:5000';
+        // Используем относительные пути для работы на любом домене (localhost или продакшен)
+        const API_URL = window.__API_URL__ || '';
 
         // --- ICONS (SVG Components for crisp look) ---
         const Icon = ({ name, size = 20, className = "" }) => {
