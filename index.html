@@ -40,6 +40,9 @@
             --tasco-accent-soft: rgba(139, 92, 246, 0.15);
             --tasco-accent-strong: #a855f7;
             --tasco-accent-border: rgba(139, 92, 246, 0.2);
+            --tasco-ambient-top: radial-gradient(circle at top, rgba(139, 92, 246, 0.25), transparent 60%);
+            --tasco-ambient-secondary: radial-gradient(circle at bottom, rgba(59, 130, 246, 0.18), transparent 60%);
+            --tasco-primary-gradient: linear-gradient(to right, #8b5cf6, #ec4899);
         }
 
         body {
@@ -61,11 +64,11 @@
 
         body[data-theme='light'] {
             --tasco-bg: #f8fafc;
-            --tasco-bg-soft: #f1f5f9;
-            --tasco-card: rgba(255, 255, 255, 0.9);
-            --tasco-panel: rgba(255, 255, 255, 0.92);
-            --tasco-border: rgba(15, 23, 42, 0.08);
-            --tasco-text: #0f172a;
+            --tasco-bg-soft: #e5edf5;
+            --tasco-card: rgba(255, 255, 255, 0.98);
+            --tasco-panel: rgba(255, 255, 255, 0.98);
+            --tasco-border: rgba(15, 23, 42, 0.16);
+            --tasco-text: #020617;
             --tasco-muted: #475569;
         }
 
@@ -81,6 +84,9 @@
             --tasco-accent-soft: rgba(59, 130, 246, 0.15);
             --tasco-accent-strong: #2563eb;
             --tasco-accent-border: rgba(59, 130, 246, 0.2);
+            --tasco-ambient-top: radial-gradient(circle at top, rgba(59, 130, 246, 0.25), transparent 60%);
+            --tasco-ambient-secondary: radial-gradient(circle at bottom, rgba(37, 99, 235, 0.18), transparent 60%);
+            --tasco-primary-gradient: linear-gradient(to right, #3b82f6, #0ea5e9);
         }
 
         body[data-accent='emerald'] {
@@ -88,6 +94,9 @@
             --tasco-accent-soft: rgba(52, 211, 153, 0.15);
             --tasco-accent-strong: #10b981;
             --tasco-accent-border: rgba(52, 211, 153, 0.2);
+            --tasco-ambient-top: radial-gradient(circle at top, rgba(52, 211, 153, 0.25), transparent 60%);
+            --tasco-ambient-secondary: radial-gradient(circle at bottom, rgba(16, 185, 129, 0.18), transparent 60%);
+            --tasco-primary-gradient: linear-gradient(to right, #10b981, #22c55e);
         }
 
         body[data-accent='rose'] {
@@ -95,6 +104,9 @@
             --tasco-accent-soft: rgba(251, 113, 133, 0.15);
             --tasco-accent-strong: #f43f5e;
             --tasco-accent-border: rgba(251, 113, 133, 0.2);
+            --tasco-ambient-top: radial-gradient(circle at top, rgba(251, 113, 133, 0.25), transparent 60%);
+            --tasco-ambient-secondary: radial-gradient(circle at bottom, rgba(244, 63, 94, 0.18), transparent 60%);
+            --tasco-primary-gradient: linear-gradient(to right, #fb7185, #f97316);
         }
 
         body[data-accent='orange'] {
@@ -102,6 +114,9 @@
             --tasco-accent-soft: rgba(251, 146, 60, 0.15);
             --tasco-accent-strong: #f97316;
             --tasco-accent-border: rgba(251, 146, 60, 0.2);
+            --tasco-ambient-top: radial-gradient(circle at top, rgba(251, 146, 60, 0.25), transparent 60%);
+            --tasco-ambient-secondary: radial-gradient(circle at bottom, rgba(234, 88, 12, 0.18), transparent 60%);
+            --tasco-primary-gradient: linear-gradient(to right, #fb923c, #f97316);
         }
         
         /* Scrollbar Styling */
@@ -240,6 +255,57 @@
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                         <circle cx="8.5" cy="8.5" r="1.5"/>
                         <polyline points="21 15 16 10 5 21"/>
+                    </>
+                ),
+                monitor: (
+                    <>
+                        <rect x="3" y="4" width="18" height="12" rx="2" ry="2" />
+                        <line x1="8" y1="20" x2="16" y2="20" />
+                        <line x1="12" y1="16" x2="12" y2="20" />
+                    </>
+                ),
+                laptop: (
+                    <>
+                        <rect x="3" y="4" width="18" height="11" rx="2" ry="2" />
+                        <path d="M2 18h20l-2 2H4z" />
+                    </>
+                ),
+                phone: (
+                    <>
+                        <rect x="8" y="3" width="8" height="18" rx="2" ry="2" />
+                        <circle cx="12" cy="18" r="1" />
+                    </>
+                ),
+                tablet: (
+                    <>
+                        <rect x="6" y="2" width="12" height="20" rx="2" ry="2" />
+                        <circle cx="12" cy="18" r="1" />
+                    </>
+                ),
+                code: (
+                    <>
+                        <polyline points="7 8 3 12 7 16" />
+                        <polyline points="17 8 21 12 17 16" />
+                        <line x1="10" y1="19" x2="14" y2="5" />
+                    </>
+                ),
+                idea: (
+                    <>
+                        <path d="M9 18h6" />
+                        <path d="M10 22h4" />
+                        <path d="M12 2a6 6 0 0 0-4 10c1 1 1 3 1 3h6s0-2 1-3a6 6 0 0 0-4-10z" />
+                    </>
+                ),
+                bug: (
+                    <>
+                        <rect x="8" y="8" width="8" height="8" rx="3" ry="3" />
+                        <line x1="12" y1="2" x2="12" y2="4" />
+                        <line x1="4" y1="12" x2="6" y2="12" />
+                        <line x1="18" y1="12" x2="20" y2="12" />
+                        <line x1="7" y1="5" x2="9" y2="7" />
+                        <line x1="17" y1="5" x2="15" y2="7" />
+                        <line x1="7" y1="19" x2="9" y2="17" />
+                        <line x1="17" y1="19" x2="15" y2="17" />
                     </>
                 )
             };
@@ -551,7 +617,7 @@
                     const res = await fetch(`${API_URL}/api/auth/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: login.trim(), password: pass })
+                        body: JSON.stringify({ username: login.trim(), password: pass, remember })
                     });
                     const payload = await res.json();
                     if (!res.ok) {
@@ -588,7 +654,7 @@
                     const res = await fetch(`${API_URL}/api/2fa/verify`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: pendingUserId, token: code })
+                        body: JSON.stringify({ userId: pendingUserId, token: code, remember })
                     });
                     const payload = await res.json();
                     if (!res.ok || !payload.success) {
@@ -671,7 +737,7 @@
                 }
             };
 
-            const handleProjectItemsUpdate = async (projectId, itemsBuilder) => {
+            const handleProjectItemsUpdate = async (projectId, itemsBuilder, extra = {}) => {
                 if (!token || !projectId) return;
                 const project = data.projects.find(p => (p._id ?? p.id) === projectId);
                 if (!project) return;
@@ -686,7 +752,7 @@
                             'Content-Type': 'application/json',
                             Authorization: `Bearer ${token}`
                         },
-                        body: JSON.stringify({ items: nextItems })
+                        body: JSON.stringify({ items: nextItems, ...extra })
                     });
                     const payload = await res.json();
                     if (checkAuthError(res, payload)) {
@@ -1031,8 +1097,14 @@
                 return (
                     <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
                         {/* Background Glows */}
-                        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[120px]"></div>
-                        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]"></div>
+                        <div
+                            className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px]"
+                            style={{ backgroundImage: 'var(--tasco-ambient-top)' }}
+                        ></div>
+                        <div
+                            className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px]"
+                            style={{ backgroundImage: 'var(--tasco-ambient-secondary)' }}
+                        ></div>
 
                         <div className="glass w-full max-w-md rounded-3xl p-8 relative z-10 animate-fade-in shadow-2xl">
                             <div className="flex justify-center mb-8">
@@ -1081,7 +1153,11 @@
                                         placeholder="000000" autoFocus
                                     />
                                     {error && <p className="text-rose-500 text-xs text-center">{error}</p>}
-                                    <button disabled={loading} className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-violet-600/20 disabled:opacity-50">
+                                    <button
+                                        disabled={loading}
+                                        className="w-full text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
+                                        style={{ backgroundImage: 'var(--tasco-primary-gradient)' }}
+                                    >
                                         {loading ? 'Проверяем...' : 'Подтвердить'}
                                     </button>
                                     <button type="button" onClick={() => setAuthStep(0)} className="w-full text-zinc-500 text-sm hover:text-white transition-colors">Назад</button>
@@ -1392,9 +1468,9 @@
 
             const projectKey = (project) => project._id ?? project.id;
 
-            const mutateItems = async (builder) => {
+            const mutateItems = async (builder, extra = {}) => {
                 if (!activeProject) return;
-                await onUpdateProjectItems(projectKey(activeProject), builder);
+                await onUpdateProjectItems(projectKey(activeProject), builder, extra);
             };
 
             // Функция для сжатия изображения
@@ -1557,23 +1633,65 @@
                             <span className="text-sm font-medium text-zinc-400">{projectsMutating ? 'Подождите...' : 'Новый проект'}</span>
                         </div>
 
-                        {data.projects.map(p => (
-                            <div key={projectKey(p)} onClick={() => setActiveProjectId(projectKey(p))} className="glass rounded-2xl p-6 cursor-pointer card-hover relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Icon name="chevronRight" className="text-zinc-500" />
+                        {data.projects.map(p => {
+                            const projId = projectKey(p);
+                            const iconId = p.icon || 'grid';
+                            const doneCount = p.items.filter(i => i.done).length;
+                            const progress = p.items.length ? (doneCount / p.items.length) * 100 : 0;
+
+                            return (
+                                <div
+                                    key={projId}
+                                    onClick={() => setActiveProjectId(projId)}
+                                    className="glass rounded-2xl p-6 cursor-pointer card-hover relative overflow-hidden group"
+                                >
+                                    <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Icon name="chevronRight" className="text-zinc-500" />
+                                    </div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center text-violet-400">
+                                            <Icon name={iconId} size={20} />
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {['grid', 'code', 'idea', 'bug', 'image'].map(opt => (
+                                                <button
+                                                    key={opt}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onUpdateProjectItems(
+                                                            projId,
+                                                            prev => prev,
+                                                            { icon: opt }
+                                                        );
+                                                    }}
+                                                    className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
+                                                        iconId === opt
+                                                            ? 'bg-white/10 text-white'
+                                                            : 'bg-black/20 text-zinc-400 hover:bg-white/10'
+                                                    }`}
+                                                >
+                                                    <Icon name={opt} size={14} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <h3 className="font-bold text-lg mb-1">{p.title}</h3>
+                                    <p className="text-xs text-zinc-500">{p.items.length} элементов</p>
+                                    
+                                    {/* Mini progress bar */}
+                                    <div className="mt-4 h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full"
+                                            style={{
+                                                width: `${progress}%`,
+                                                backgroundColor: 'var(--tasco-accent)'
+                                            }}
+                                        ></div>
+                                    </div>
                                 </div>
-                                <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center mb-4 text-violet-400">
-                                    <Icon name="grid" size={20} />
-                                </div>
-                                <h3 className="font-bold text-lg mb-1">{p.title}</h3>
-                                <p className="text-xs text-zinc-500">{p.items.length} элементов</p>
-                                
-                                {/* Mini progress bar */}
-                                <div className="mt-4 h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-violet-500" style={{ width: `${p.items.length ? (p.items.filter(i=>i.done).length/p.items.length)*100 : 0}%` }}></div>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             );
@@ -1783,28 +1901,41 @@
                                     Сессий нет. Войдите с нового устройства, чтобы увидеть его здесь.
                                 </div>
                             )}
-                            {sessions.map((session) => (
-                                <div key={session.sessionId} className="glass rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                                    <div>
-                                        <p className="font-medium text-sm">{session.userAgent || 'Неизвестное устройство'}</p>
-                                        <p className="text-xs text-zinc-500">
-                                            IP: {session.ip || '—'} • Активность: {formatDateTime(session.lastSeen)}
-                                        </p>
+                            {sessions.map((session) => {
+                                const type = session.deviceType || 'desktop';
+                                let iconName = 'monitor';
+                                if (type === 'android' || type === 'mobile') iconName = 'phone';
+                                if (type === 'ios') iconName = 'phone';
+                                if (type === 'tablet') iconName = 'tablet';
+
+                                return (
+                                    <div key={session.sessionId} className="glass rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center text-zinc-300">
+                                                <Icon name={iconName} size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-sm">{session.userAgent || 'Неизвестное устройство'}</p>
+                                                <p className="text-xs text-zinc-500">
+                                                    IP: {session.ip || '—'} • Активность: {formatDateTime(session.lastSeen)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {session.sessionId === currentSessionId ? (
+                                                <span className="text-xs px-3 py-1 rounded-full accent-chip">Текущая сессия</span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => onRevokeSession(session.sessionId)}
+                                                    className="text-sm px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors"
+                                                >
+                                                    Выйти
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        {session.sessionId === currentSessionId ? (
-                                            <span className="text-xs px-3 py-1 rounded-full accent-chip">Текущая сессия</span>
-                                        ) : (
-                                            <button
-                                                onClick={() => onRevokeSession(session.sessionId)}
-                                                className="text-sm px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors"
-                                            >
-                                                Выйти
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </section>
                 </div>

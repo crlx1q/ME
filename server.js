@@ -58,6 +58,7 @@ const UserSchema = new mongoose.Schema({
 const ProjectSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
     title: { type: String, required: true, trim: true },
+    icon: { type: String, default: 'grid' },
     items: [{
         _id: false,
         id: { type: String, required: true },
@@ -86,6 +87,13 @@ const SessionSchema = new mongoose.Schema({
     userAgent: { type: String, default: 'Неизвестное устройство' },
     ip: { type: String, default: '' },
     isActive: { type: Boolean, default: true },
+    remember: { type: Boolean, default: false },
+    expiresAt: { type: Date },
+    deviceType: {
+        type: String,
+        enum: ['desktop', 'android', 'ios', 'tablet', 'mobile', 'other'],
+        default: 'desktop'
+    },
     createdAt: { type: Date, default: Date.now },
     lastSeen: { type: Date, default: Date.now }
 });
@@ -97,7 +105,12 @@ const Task = mongoose.model('Task', TaskSchema);
 const Note = mongoose.model('Note', NoteSchema);
 const Session = mongoose.model('Session', SessionSchema);
 
-const createToken = (userId, sessionId) => jwt.sign({ id: userId, sessionId }, process.env.JWT_SECRET, { expiresIn: '12h' });
+const createToken = (userId, sessionId, remember = false) =>
+    jwt.sign(
+        { id: userId, sessionId },
+        process.env.JWT_SECRET,
+        { expiresIn: remember ? '30d' : '12h' }
+    );
 
 // Функция для сжатия Base64 изображений
 const compressBase64Image = async (base64String, maxWidth = 1920, maxHeight = 1920, quality = 80) => {
@@ -221,6 +234,31 @@ const parseDeviceInfo = (userAgentString) => {
     return parts.length > 0 ? parts.join(' • ') : 'Неизвестное устройство';
 };
 
+// Определение типа устройства по User-Agent
+const detectDeviceType = (userAgentString) => {
+    if (!userAgentString || userAgentString === 'Неизвестное устройство') {
+        return 'other';
+    }
+
+    const parser = new UAParser(userAgentString);
+    const result = parser.getResult();
+    const device = result.device || {};
+    const os = result.os || {};
+
+    if (device.type === 'mobile') {
+        if (os.name === 'Android') return 'android';
+        if (os.name === 'iOS') return 'ios';
+        return 'mobile';
+    }
+
+    if (device.type === 'tablet') {
+        return 'tablet';
+    }
+
+    // Если тип устройства не определен, считаем, что это десктоп
+    return 'desktop';
+};
+
 // Функция для получения IP адреса
 const getClientIP = (req) => {
     // Проверяем заголовки прокси
@@ -258,18 +296,30 @@ const getClientIP = (req) => {
     return ip || 'Неизвестный IP';
 };
 
-const createSessionRecord = async (userId, req) => {
+const createSessionRecord = async (userId, req, remember = false) => {
     const sessionId = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
     const userAgentString = req.headers['user-agent'] || 'Неизвестное устройство';
     const deviceInfo = parseDeviceInfo(userAgentString);
+    const deviceType = detectDeviceType(userAgentString);
     const ip = getClientIP(req);
+
+    // Срок жизни сессии: 12 часов по умолчанию, 30 дней при remember=true
+    const now = new Date();
+    const expiresAt = new Date(
+        remember
+            ? now.getTime() + 30 * 24 * 60 * 60 * 1000
+            : now.getTime() + 12 * 60 * 60 * 1000
+    );
 
     const session = await Session.create({
         sessionId,
         userId,
         userAgent: deviceInfo, // Сохраняем отформатированную информацию об устройстве
         ip: ip,
-        isActive: true
+        isActive: true,
+        remember,
+        expiresAt,
+        deviceType
     });
 
     return session;
@@ -316,7 +366,7 @@ const auth = async (req, res, next) => {
 // Login (Шаг 1: Проверка пароля)
 app.post('/api/auth/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, remember = false } = req.body;
         if (!username || !password) {
             return res.status(400).json({ error: 'Укажите логин и пароль' });
         }
@@ -341,8 +391,8 @@ app.post('/api/auth/login', async (req, res) => {
         }
 
         // Если 2FA нет, даем доступ сразу
-        const session = await createSessionRecord(user._id, req);
-        const token = createToken(user._id, session.sessionId);
+        const session = await createSessionRecord(user._id, req, !!remember);
+        const token = createToken(user._id, session.sessionId, !!remember);
         res.json({
             token,
             sessionId: session.sessionId,
@@ -399,7 +449,7 @@ app.post('/api/2fa/setup', async (req, res) => {
 // 2. Верификация токена (Вход в систему)
 app.post('/api/2fa/verify', async (req, res) => {
     try {
-        const { userId, token } = req.body; // token - это 6 цифр с телефона
+        const { userId, token, remember = false } = req.body; // token - это 6 цифр с телефона
         if (!userId || !token) {
             return res.status(400).json({ success: false, error: 'Не переданы userId или token' });
         }
@@ -423,8 +473,8 @@ app.post('/api/2fa/verify', async (req, res) => {
 
         // Если код верный - включаем 2FA (если была настройка) и даем JWT токен
         await User.findByIdAndUpdate(userId, { isTwoFAEnabled: true });
-        const session = await createSessionRecord(user._id, req);
-        const jwtToken = createToken(user._id, session.sessionId);
+        const session = await createSessionRecord(user._id, req, !!remember);
+        const jwtToken = createToken(user._id, session.sessionId, !!remember);
         res.json({
             success: true,
             token: jwtToken,
@@ -463,11 +513,16 @@ app.get('/api/projects', auth, async (req, res) => {
 
 app.post('/api/projects', auth, async (req, res) => {
     try {
-        const { title } = req.body;
+        const { title, icon } = req.body;
         if (!title?.trim()) {
             return res.status(400).json({ error: 'Название проекта обязательно' });
         }
-        const newProject = new Project({ title: title.trim(), items: [], userId: req.user.id });
+        const newProject = new Project({
+            title: title.trim(),
+            items: [],
+            userId: req.user.id,
+            icon: icon || 'grid'
+        });
         await newProject.save();
         res.status(201).json(newProject);
     } catch (error) {
@@ -479,7 +534,7 @@ app.post('/api/projects', auth, async (req, res) => {
 app.patch('/api/projects/:projectId/items', auth, async (req, res) => {
     try {
         const { projectId } = req.params;
-        const { items } = req.body;
+        const { items, icon } = req.body;
         if (!Array.isArray(items)) {
             return res.status(400).json({ error: 'Массив items обязателен' });
         }
@@ -493,9 +548,14 @@ app.patch('/api/projects/:projectId/items', auth, async (req, res) => {
             return item;
         }));
 
+        const updateDoc = { items: compressedItems };
+        if (typeof icon === 'string' && icon.trim()) {
+            updateDoc.icon = icon.trim();
+        }
+
         const project = await Project.findOneAndUpdate(
             { _id: projectId, userId: req.user.id },
-            { items: compressedItems },
+            updateDoc,
             { new: true, runValidators: true }
         );
 
@@ -574,7 +634,10 @@ app.get('/api/sessions', auth, async (req, res) => {
                 ip: session.ip,
                 createdAt: session.createdAt,
                 lastSeen: session.lastSeen,
-                isActive: session.isActive
+                isActive: session.isActive,
+                deviceType: session.deviceType || 'desktop',
+                remember: !!session.remember,
+                expiresAt: session.expiresAt
             }))
         });
     } catch (error) {
@@ -607,7 +670,20 @@ app.get('/api/auth/check-session', auth, async (req, res) => {
         if (!session || !session.isActive) {
             return res.status(401).json({ error: 'Сессия неактивна' });
         }
-        res.json({ isActive: true, sessionId: session.sessionId });
+
+        // Проверка срока жизни сессии
+        if (session.expiresAt && session.expiresAt.getTime() < Date.now()) {
+            session.isActive = false;
+            await session.save().catch(() => {});
+            return res.status(401).json({ error: 'Сессия неактивна' });
+        }
+
+        res.json({
+            isActive: true,
+            sessionId: session.sessionId,
+            remember: !!session.remember,
+            expiresAt: session.expiresAt
+        });
     } catch (error) {
         console.error('Check session error:', error);
         res.status(500).json({ error: 'Ошибка проверки сессии' });
